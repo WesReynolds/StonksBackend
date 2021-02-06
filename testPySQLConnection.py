@@ -15,7 +15,7 @@ query2 = ("SELECT * FROM firstTable WHERE col2=102")
 cur.execute(query2)
 
 # Fetch results of queries
-print(cur.fetchone()[1])
+#print(cur.fetchone()[1])
 print(cur.fetchall())
 
 # Commit changes
