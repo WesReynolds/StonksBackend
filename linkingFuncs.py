@@ -10,6 +10,7 @@ import yfinance as yf
 def search_tiker(tik):
     try:
         stock = yf.Ticker(tik)
+        print(stock.info)
         return stock.info.get("ask")
     except:
         return -1
@@ -77,6 +78,8 @@ def graph_info(per, tik):
 
 
 ########################################################################################
+
+
 def getDetailedStats(tckr, time):
     currentPrice = 0
     lowPrice = 0
