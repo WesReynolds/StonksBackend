@@ -1,19 +1,24 @@
 import yfinance as yf
+from flask import Flask
+from flask_cors import CORS
+from flask import jsonify
 
+app = Flask(__name__)
+CORS(app)
 # To Do:
 
 # Given a Ticker symbol and Timestring, this function will
 # return an Ordered Tuple of the form for the time frame:
 # (currentPrice, lowPrice, highPrice)
 
+@app.route("/tik/<tik>", methods=['GET'])
 # search_tiker - send back tuple (boolean, current price(float))
 def search_tiker(tik):
     try:
         stock = yf.Ticker(tik)
-        print(stock.info)
-        return stock.info.get("ask")
+        return { 'price': stock.info.get("ask") }
     except:
-        return -1
+        return {}
 
 def get_interval(per):
     if(per == '1d'):
