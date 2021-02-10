@@ -33,10 +33,11 @@ def get_interval(per):
 #   takes in: time period, tiker
 #   return: current price, high and low of the period 
 
+@app.route("/det/<per>/<tik>", methods=['GET'])
 def viewDetail_info(per, tik):
         curr_price = search_tiker(tik)
         if curr_price == -1:
-            return (-1, -1, -1)
+            return { }
             
         data = yf.download(  # or pdr.get_data_yahoo(...
             # tickers list or string as well
@@ -50,16 +51,17 @@ def viewDetail_info(per, tik):
             threads = True,
             proxy = None
         )
-        return (curr_price, data['Low'][0], data['High'][-1])
+        return { 'curr_price': curr_price, 'data_low': data['Low'][0], 'data_high': data['High'][-1] }
 
 # graph_info 
 #   takes in: time period, tiker, interval 
 #   return: high and low in an array of ordered tuple 
 
+@app.route("/graph/<per>/<tik>", methods=['GET'])
 def graph_info(per, tik):
         curr_price = search_tiker(tik)
         if curr_price == -1:
-            return (-1, -1, -1)
+            return { }
             
         data = yf.download(  # or pdr.get_data_yahoo(...
             # tickers list or string as well
@@ -76,14 +78,9 @@ def graph_info(per, tik):
         result = []
         for entry in range(len(data['Low'])):
             result.append((data['Low'][entry], data['High'][entry]))
-        return result
-
-
-
-
+        return { 'days': result}
 
 ########################################################################################
-
 
 def getDetailedStats(tckr, time):
     currentPrice = 0
