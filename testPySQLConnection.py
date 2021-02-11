@@ -1,14 +1,14 @@
 import mysql.connector
 
 # Establish a connection
-cnx = mysql.connector.connect(user='root', password='Valentino46', database='firstDB')
+cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
 
 # Create a cursor
 cur = cnx.cursor(buffered=True)
 
 # Define queries
-query = ("INSERT INTO firstTable VALUES (101, 102, 103)")
-query2 = ("SELECT * FROM firstTable WHERE col2=102")
+query = ("INSERT INTO Users VALUES (3, 'Mike', 'RobbyLuv')")
+query2 = ("SELECT * FROM Users WHERE id=3")
 
 # Execute queries
 #cur.execute(query)
