@@ -16,7 +16,7 @@ import mysql.connector
 # current database, assuming the user is "root"
 def create_users():
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='trash')
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Create the Users Table
@@ -39,7 +39,7 @@ def create_users():
     
 def create_transactions():
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='trash')
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Create the Transactions Table 
