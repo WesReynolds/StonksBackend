@@ -19,8 +19,23 @@ def get_id(username, cur):
     if fetch == []:
         return None
     return fetch[0]
+
+@app.route("/g_prof/<username>", methods=['GET'])
+def get_profile(username):
+    # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor 
+    cur = cnx.cursor(buffered=True)
+    id = get_id(username, cur)
+    #get transactions
+    cur.execute("SELECT * FROM Transactions WHERE UserId='%d'" % (id))
+    fetch = cur.fetchall()
+    if (fetch == []):
+        return { 'Action': False }
+    print(fetch)
+    
+
         
- 
 # Given customer information (first, last, username, password) 
 # Will create a user in the user database and store information
 @app.route("/c_acc/<first>/<last>/<username>/<password>", methods=['GET'])
@@ -61,7 +76,7 @@ def login(username, password):
     cnx.close()
     return { 'Action': True }
 
-#
+# 
 # Assume Funds
 # Action = BUY or SELL - all caps 
 # Transactions  UserId, ticker, volume, action, price, time 
@@ -79,14 +94,13 @@ def record_transaction(username, amount, tik, action):
     if (id ==  None):
         return { 'Action': False}   
     time = datetime.datetime.now()
-    
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', '%s', '%f', '%s')" % (
         id, tik, amount, action, price, time))
     # Commit change 
     cnx.commit()
     # Close connections 
     cnx.close()
-    return { 'Action': True}    
+    return { 'Action': True}
 
 @app.route("/tik/<tik>", methods=['GET'])
 # search_tiker - send back tuple (boolean, current price(float))

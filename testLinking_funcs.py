@@ -26,13 +26,17 @@ def test_login():
 def test_record_transaction():
     print(linkingFuncs.record_transaction('Wazzah', 10, 'AAPL', 'SELL'))
 
+def test_get_profile():
+    print(linkingFuncs.get_profile('Wazzah'))  
+
 def main():
     #test_search_ticker()
     #test_viewDetail_info()
     #test_graph_info()
     #test_create_account()
     #test_login()
-    test_record_transaction()
+    #test_record_transaction()
+    test_get_profile()
     return 0
 
 main()
