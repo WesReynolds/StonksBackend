@@ -93,7 +93,9 @@ def record_transaction(username, amount, tik, action):
 def search_tiker(tik):
     try:
         stock = yf.Ticker(tik)
-        return { 'price': stock.info.get("ask") }
+        print(stock.info)
+        return { 'price': stock.info.get("ask"),
+                 'sector': stock.info.get("sector")}
     except:
         return {}
 
