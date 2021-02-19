@@ -47,10 +47,11 @@ def main():
     #test_login()
     #test_record_transaction()
     #test_get_profile(
-    test_add_watchlist()
-    test_remove_watchlist()
+    #test_add_watchlist()
+    #test_remove_watchlist()
    
-     test_get_watchlist()
+    #test_get_watchlist()
+
     return 0
 
 main()
