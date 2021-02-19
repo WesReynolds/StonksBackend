@@ -2,3 +2,4 @@ yfinance
 mysql-connector
 datetime
 flask
+flask_cors
