@@ -33,8 +33,24 @@ def get_profile(username):
     if (fetch == []):
         return { 'Action': False }
     print(fetch)
-    
 
+@app.route("/g_watch/<username>", methods=['GET'])
+def get_watchlist(username):
+    # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor 
+    cur = cnx.cursor(buffered=True)
+    id = get_id(username, cur)
+    #get transactions
+    cur.execute("SELECT * FROM Transactions WHERE UserId='%d' AND volume=0 AND display=1 ORDER BY ticker" % (id))
+    ret = {}
+    for stock in cur.fetchall():
+        ret.update(stock[1],)
+    # Commit change 
+    cnx.commit()
+    # Close connections 
+    cnx.close()
+    return { 'Action': True }
         
 # Given customer information (first, last, username, password) 
 # Will create a user in the user database and store information
@@ -76,12 +92,8 @@ def login(username, password):
     cnx.close()
     return { 'Action': True }
 
-# 
-# Assume Funds
-# Action = BUY or SELL - all caps 
-# Transactions  UserId, ticker, volume, action, price, time 
-@app.route("/rec_t/<username>/<amount>/<tik>/<action>", methods=['GET'])
-def record_transaction(username, amount, tik, action):
+@app.route("/rem_w/<username>/<tik>", methods=['GET'])
+def remove_watchlist(username, tik):
     # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
@@ -94,8 +106,34 @@ def record_transaction(username, amount, tik, action):
     if (id ==  None):
         return { 'Action': False}   
     time = datetime.datetime.now()
-    cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', '%s', '%f', '%s')" % (
-        id, tik, amount, action, price, time))
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'SELL, '%f', '%s', 0)" % (
+        id, tik, price, time))
+    cur.execute("UPDATE * FROM Transactions SET display=0 WHERE ticker='%s' AND amount=0 AND display=1" % (tik))
+    # Commit change 
+    cnx.commit()
+    # Close connections 
+    cnx.close()
+    return { 'Action': True}
+ 
+# Assume Funds
+# Action = BUY or SELL - all caps 
+# Transactions  UserId, ticker, volume, action, price, time 
+@app.route("/add_w/<username>/<tik>", methods=['GET'])
+def add_watchlist(username, tik):
+    # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor 
+    cur = cnx.cursor(buffered=True)
+    # get current price
+    price =  search_tiker(tik).get('price')
+    if(price == {}):
+        return { 'Action': False}
+    id = get_id(username, cur)
+    if (id ==  None):
+        return { 'Action': False}   
+    time = datetime.datetime.now()
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'BUY', '%f', '%s', 1)" % (
+        id, tik, price, time))
     # Commit change 
     cnx.commit()
     # Close connections 

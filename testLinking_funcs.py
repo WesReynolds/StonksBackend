@@ -29,14 +29,28 @@ def test_record_transaction():
 def test_get_profile():
     print(linkingFuncs.get_profile('Wazzah'))  
 
+def test_get_watchlist():
+    print(linkingFuncs.get_watchlist('Wazzah'))
+
+def test_add_watchlist():
+    print(linkingFuncs.add_watchlist('Wazzah', 'AAPL'))
+    print(linkingFuncs.add_watchlist('Wazzah', "MSFT"))
+
+def test_remove_watchlist():
+    print(linkingFuncs.remove_watchlist('Wazzah', 'AAPL'))
+
 def main():
     #test_search_ticker()
     #test_viewDetail_info()
-    #test_graph_info()
+    #testgraph_info()
     #test_create_account()
     #test_login()
     #test_record_transaction()
-    test_get_profile()
+    #test_get_profile(
+    test_add_watchlist()
+    test_remove_watchlist()
+   
+     test_get_watchlist()
     return 0
 
 main()

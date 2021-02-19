@@ -1,5 +1,6 @@
 #How to run 
 # 1). pip install mysql 
+# 2). pip install mysql-connector
 # 2). mysql -u root -p 
 # 3). Valentino46
 # 4). CREATE DATABASE StonkLabs
@@ -30,7 +31,7 @@ def create_users():
     cur.execute("INSERT INTO Users Values (7, 'Godwin', 'purplewrap', 'Kelsi', 'Monroe')")
     cur.execute("INSERT INTO Users Values (8, 'WRLD999', 'juicey', 'Jarad', 'Gonzales')")
     cur.execute("INSERT INTO Users Values (9, 'Redd', 'trippie', 'James', 'Charles')")
-    cur.execute("INSERT INTO Users Values (10, 'activist', 'uphere', 'Daquan', 'Rashad')")
+    cur.execute("INSERT INTO Users Values(10, 'activist', 'uphere', 'Daquan', 'Rashad')")
     # Commit change 
     cnx.commit()
     # Close connections 
