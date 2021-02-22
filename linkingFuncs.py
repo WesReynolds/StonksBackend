@@ -11,7 +11,12 @@ CORS(app)
 #gets next valid id  
 def get_nxtId(cur):
     cur.execute("SELECT * FROM Users ORDER BY id DESC")
-    return cur.fetchone()[0] + 1
+    nxtID = cur.fetchone()
+    # makes sure there is something in database
+    if nxtID is None:
+        return 1
+    else:
+        return nxtID[0] + 1
 
 def get_id(username, cur):
     cur.execute("SELECT * FROM Users WHERE username='%s'" % (username))
@@ -71,7 +76,10 @@ def create_account(first, last, username, password):
     cnx.commit()
     # Close connections 
     cnx.close()
-    return { 'Action': True }
+    resp = jsonify(success=True, username=username, firstname=first, lastname=last,
+                   password=password)
+    resp.status_code = 201
+    return resp
 
 # Given customer information (username, password)
 # Will return true if username and password work 
@@ -84,13 +92,48 @@ def login(username, password):
     cur = cnx.cursor(buffered=True)
     # Look to see if username is already there 
     cur.execute("SELECT * FROM Users WHERE username='%s' AND password='%s'" % (username, password))
-    if (cur.fetchall() == []):
+    userSQL = cur.fetchall()
+    if (userSQL == []):
         return { 'Action': False }
+    # json user profile
+    print(userSQL)
+    resp = jsonify(success=True, username=userSQL[0][1], firstname=userSQL[0][3],
+                  lastname=userSQL[0][4], password=userSQL[0][2])
+    resp.status_code = 201
     # Commit change 
     cnx.commit()
     # Close connections 
     cnx.close()
-    return { 'Action': True }
+    return resp
+
+# returns json form of all users in mySQL DB
+# FOR DEV PURPOSES - MAY NOT BE USED IN FINAL SHIP
+@app.route("/users", methods=['GET'])
+def get_users():
+    users = {
+        'users_list' :
+            [
+
+            ]
+    }
+    # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor
+    cur = cnx.cursor(buffered=True)
+    # fetch all users in DB
+    cur.execute("SELECT * FROM Users")
+    userSQL = cur.fetchall()
+    for user in userSQL:
+        userJson = {"username" : user[1],
+                    "firstname" : user[3],
+                    "lastname" : user[4],
+                    "password" : user[2]}
+        users['users_list'].append(userJson)
+    # Commit change
+    cnx.commit()
+    # Close connections
+    cnx.close()
+    return users
 
 @app.route("/rem_w/<username>/<tik>", methods=['GET'])
 def remove_watchlist(username, tik):
