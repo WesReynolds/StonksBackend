@@ -147,7 +147,11 @@ def search_tiker(tik):
         stock = yf.Ticker(tik)
         print(stock.info)
         return { 'price': stock.info.get("ask"),
-                 'sector': stock.info.get("sector")}
+                 'sector': stock.info.get("sector"),
+                 'dayHigh': stock.info.get("dayHigh"),
+                 'dayLow': stock.info.get("dayLow"),
+                 'percentChange': stock.info.get("52WeekChange"),
+                 'volume': stock.info.get("volume")}
     except:
         return {}
 
