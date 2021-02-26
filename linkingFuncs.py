@@ -25,6 +25,62 @@ def get_id(username, cur):
         return None
     return fetch[0]
 
+@app.route("/buy/<username>/<tik>/<volume>")
+def buy(username, tik, volume):
+    # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor 
+    cur = cnx.cursor(buffered=True)
+    # get current price
+    price =  search_tiker(tik).get('price')
+    if(price == {}):
+        return { 'Action': False}
+    id = get_id(username, cur)
+    if (id ==  None):
+        return { 'Action': False}
+    time = datetime.datetime.now()
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'BUY', '%f', '%s', 0)" % (
+        id, tik, volume, price, time))
+    # Commit change 
+    cnx.commit()
+    # Close connections 
+    cnx.close()
+    return { 'Action': True}
+
+@app.route("/sell/<username>/<tik>/<volume>")
+def sell(username, tik, volume):
+        # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor 
+    cur = cnx.cursor(buffered=True)
+    # get current price
+    price =  search_tiker(tik).get('price')
+    if(price == {}):
+        return { 'Action': False}
+    id = get_id(username, cur)
+    if (id ==  None):
+        return { 'Action': False}   
+    time = datetime.datetime.now()
+    cur.execute("SELECT * FROM Transactions WHERE ticker='%s' AND UserId='%d'" % (tik, id))
+    curVolume = 0
+    fetch = cur.fetchall()
+    if (fetch == []):
+        return { 'Action': False }
+    for item in fetch:
+        if item[3] == "BUY":
+            curVolume += item[2]
+        else:
+            curVolume -= item[2]
+    if volume > curVolume:
+        return { 'Action': False }
+    
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'SELL', '%f', '%s', 0)" % (id, tik, volume, price, time))
+    # Commit change 
+    cnx.commit()
+    # Close connections 
+    cnx.close()
+    return { 'Action': True}
+
 @app.route("/g_prof/<username>", methods=['GET'])
 def get_profile(username):
     # establish connection
@@ -46,7 +102,7 @@ def get_profile(username):
             if totalSpent != 0:
                 stock = yf.Ticker(oldTik)
                 curPrice =  stock.info.get('ask')
-                percentChange = (volume * curPrice) / totalSpent
+                percentChange = ((volume * curPrice) - totalSpent) / totalSpent
                 ret.append({"ticker": oldTik, "volume": volume, "percentage": percentChange})
                 volume = totalSpent = 0 
         if result[3] == "SELL":
@@ -57,12 +113,11 @@ def get_profile(username):
             totalSpent += (result[4] * result[2])  
         oldTik = result[1]   
 
-    print(oldTik)
     stock = yf.Ticker(oldTik)
     curPrice =  stock.info.get('ask')
-    print(curPrice)
+
     if totalSpent != 0:
-        percentChange = (volume * curPrice) / totalSpent
+        percentChange = ((volume * curPrice) - totalSpent) / totalSpent
         ret.append({"ticker": oldTik, "volume": volume, "percentage": percentChange})
 
     # Commit change 
@@ -186,7 +241,7 @@ def remove_watchlist(username, tik):
     if (id ==  None):
         return { 'Action': False}   
     time = datetime.datetime.now()
-    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 4, 'SELL', '%f', '%s', 0)" % (id, tik, price, time))
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'SELL', '%f', '%s', 0)" % (id, tik, price, time))
     cur.execute("UPDATE Transactions SET display=0 WHERE ticker='%s' AND volume=0 AND display=1" % (tik))
     # Commit change 
     cnx.commit()
@@ -214,7 +269,7 @@ def add_watchlist(username, tik):
     if cur.fetchone() != None:
         return { 'Action': False}
     time = datetime.datetime.now()
-    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 20, 'BUY', '%f', '%s', 1)" % (
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'BUY', '%f', '%s', 1)" % (
         id, tik, price, time))
     # Commit change 
     cnx.commit()
