@@ -33,11 +33,43 @@ def get_profile(username):
     cur = cnx.cursor(buffered=True)
     id = get_id(username, cur)
     #get transactions
-    cur.execute("SELECT * FROM Transactions WHERE UserId='%d'" % (id))
+    cur.execute("SELECT * FROM Transactions WHERE UserId='%d' ORDER BY ticker" % (id))
     fetch = cur.fetchall()
     if (fetch == []):
         return { 'Action': False }
-    print(fetch)
+    ret = []
+    oldTik = ""
+    volume = 0
+    totalSpent = 0
+    for result in fetch:
+        if result[1] != oldTik:
+            if totalSpent != 0:
+                stock = yf.Ticker(oldTik)
+                curPrice =  stock.info.get('ask')
+                percentChange = (volume * curPrice) / totalSpent
+                ret.append({"ticker": oldTik, "volume": volume, "percentage": percentChange})
+                volume = totalSpent = 0 
+        if result[3] == "SELL":
+            volume -= result[2]
+            totalSpent -= (result[4] * result[2])
+        else:
+            volume += result[2]
+            totalSpent += (result[4] * result[2])  
+        oldTik = result[1]   
+
+    print(oldTik)
+    stock = yf.Ticker(oldTik)
+    curPrice =  stock.info.get('ask')
+    print(curPrice)
+    if totalSpent != 0:
+        percentChange = (volume * curPrice) / totalSpent
+        ret.append({"ticker": oldTik, "volume": volume, "percentage": percentChange})
+
+    # Commit change 
+    cnx.commit()
+    # Close connections 
+    cnx.close()
+    return ret
 
 @app.route("/g_watch/<username>", methods=['GET'])
 def get_watchlist(username):
@@ -46,16 +78,22 @@ def get_watchlist(username):
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     id = get_id(username, cur)
+    
     #get transactions
     cur.execute("SELECT * FROM Transactions WHERE UserId='%d' AND volume=0 AND display=1 ORDER BY ticker" % (id))
-    ret = {}
+    ret = []
     for stock in cur.fetchall():
-        ret.update(stock[1],)
+        tik = yf.Ticker(stock[1])    
+        try:
+            price = tik.info.get("ask")
+        except:
+            continue
+        ret.append({"ticker": stock[1], "price": price})
     # Commit change 
     cnx.commit()
     # Close connections 
     cnx.close()
-    return { 'Action': True }
+    return ret
         
 # Given customer information (first, last, username, password) 
 # Will create a user in the user database and store information
@@ -96,7 +134,6 @@ def login(username, password):
     if (userSQL == []):
         return { 'Action': False }
     # json user profile
-    print(userSQL)
     resp = jsonify(success=True, username=userSQL[0][1], firstname=userSQL[0][3],
                   lastname=userSQL[0][4], password=userSQL[0][2])
     resp.status_code = 201
@@ -149,9 +186,8 @@ def remove_watchlist(username, tik):
     if (id ==  None):
         return { 'Action': False}   
     time = datetime.datetime.now()
-    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'SELL, '%f', '%s', 0)" % (
-        id, tik, price, time))
-    cur.execute("UPDATE * FROM Transactions SET display=0 WHERE ticker='%s' AND amount=0 AND display=1" % (tik))
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 4, 'SELL', '%f', '%s', 0)" % (id, tik, price, time))
+    cur.execute("UPDATE Transactions SET display=0 WHERE ticker='%s' AND volume=0 AND display=1" % (tik))
     # Commit change 
     cnx.commit()
     # Close connections 
@@ -173,9 +209,12 @@ def add_watchlist(username, tik):
         return { 'Action': False}
     id = get_id(username, cur)
     if (id ==  None):
-        return { 'Action': False}   
+        return { 'Action': False}
+    cur.execute("SELECT * FROM Transactions WHERE UserId='%d' AND volume=0 AND display=1 AND ticker='%s'" % (id, tik))  
+    if cur.fetchone() != None:
+        return { 'Action': False}
     time = datetime.datetime.now()
-    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'BUY', '%f', '%s', 1)" % (
+    cur.execute("INSERT INTO Transactions Values ('%d', '%s', 20, 'BUY', '%f', '%s', 1)" % (
         id, tik, price, time))
     # Commit change 
     cnx.commit()
@@ -188,7 +227,6 @@ def add_watchlist(username, tik):
 def search_tiker(tik):
     try:
         stock = yf.Ticker(tik)
-        print(stock.info)
         return { 'price': stock.info.get("ask"),
                  'sector': stock.info.get("sector"),
                  'dayHigh': stock.info.get("dayHigh"),
