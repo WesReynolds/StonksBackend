@@ -38,6 +38,15 @@ def test_add_watchlist():
 def test_remove_watchlist():
     print(linkingFuncs.remove_watchlist('Wazza', 'TSLA'))
 
+def test_buy():
+    print(linkingFuncs.buy('Wazza', 'GME', 17))
+    print(linkingFuncs.buy('Wazza', 'MSFT', 5))
+    
+def test_sell():
+    print(linkingFuncs.sell('Wazza', 'GME', 18))
+    print(linkingFuncs.sell('Wazza', 'MSFT', 5))
+
+
 def main():
     #test_search_ticker()
     #test_viewDetail_info()
@@ -45,6 +54,8 @@ def main():
     #test_create_account()
     #test_login()
     #test_record_transaction()
+    #test_buy()
+    #test_sell()
     test_get_profile()
     #test_add_watchlist()
     #test_remove_watchlist()
