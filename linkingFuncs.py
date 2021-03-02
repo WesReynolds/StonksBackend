@@ -93,17 +93,19 @@ def get_profile(username):
     fetch = cur.fetchall()
     if (fetch == []):
         return { 'Action': False }
-    ret = []
+    ret = {}
     oldTik = ""
     volume = 0
     totalSpent = 0
+    key = 0 
     for result in fetch:
         if result[1] != oldTik:
             if totalSpent != 0:
                 stock = yf.Ticker(oldTik)
                 curPrice =  stock.info.get('ask')
                 percentChange = ((volume * curPrice) - totalSpent) / totalSpent
-                ret.append({"ticker": oldTik, "volume": volume, "percentage": percentChange})
+                ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange}
+                key = key + 1
                 volume = totalSpent = 0 
         if result[3] == "SELL":
             volume -= result[2]
@@ -118,7 +120,7 @@ def get_profile(username):
 
     if totalSpent != 0:
         percentChange = ((volume * curPrice) - totalSpent) / totalSpent
-        ret.append({"ticker": oldTik, "volume": volume, "percentage": percentChange})
+        ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange}
 
     # Commit change 
     cnx.commit()
@@ -136,14 +138,16 @@ def get_watchlist(username):
     
     #get transactions
     cur.execute("SELECT * FROM Transactions WHERE UserId='%d' AND volume=0 AND display=1 ORDER BY ticker" % (id))
-    ret = []
+    ret = {}
+    key = 0
     for stock in cur.fetchall():
         tik = yf.Ticker(stock[1])    
         try:
             price = tik.info.get("ask")
         except:
             continue
-        ret.append({"ticker": stock[1], "price": price})
+        ret[key] = {"ticker": stock[1], "price": price}
+        key = key + 1
     # Commit change 
     cnx.commit()
     # Close connections 
