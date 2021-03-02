@@ -81,6 +81,7 @@ def sell(username, tik, volume):
     cnx.close()
     return { 'Action': True}
 
+
 @app.route("/g_prof/<username>", methods=['GET'])
 def get_profile(username):
     # establish connection
