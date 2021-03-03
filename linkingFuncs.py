@@ -27,6 +27,7 @@ def get_id(username, cur):
 
 @app.route("/buy/<username>/<tik>/<volume>")
 def buy(username, tik, volume):
+    volume = int(volume)
     # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
@@ -49,7 +50,8 @@ def buy(username, tik, volume):
 
 @app.route("/sell/<username>/<tik>/<volume>")
 def sell(username, tik, volume):
-        # establish connection
+    volume = int(volume)
+    # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
@@ -104,8 +106,9 @@ def get_profile(username):
             if totalSpent != 0:
                 stock = yf.Ticker(oldTik)
                 curPrice =  stock.info.get('ask')
-                percentChange = ((volume * curPrice) - totalSpent) / totalSpent
-                ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange}
+                posValue = round((volume * curPrice), 2)
+                percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
+                ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue}
                 key = key + 1
                 volume = totalSpent = 0 
         if result[3] == "SELL":
@@ -120,8 +123,9 @@ def get_profile(username):
     curPrice =  stock.info.get('ask')
 
     if totalSpent != 0:
-        percentChange = ((volume * curPrice) - totalSpent) / totalSpent
-        ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange}
+        posValue = round((volume * curPrice), 2)
+        percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
+        ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue}
 
     # Commit change 
     cnx.commit()
