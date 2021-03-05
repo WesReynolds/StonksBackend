@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask import jsonify
 import mysql.connector
 import datetime 
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -140,7 +141,6 @@ def get_watchlist(username):
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     id = get_id(username, cur)
-    
     #get transactions
     cur.execute("SELECT * FROM Transactions WHERE UserId='%d' AND volume=0 AND display=1 ORDER BY ticker" % (id))
     ret = {}
@@ -158,7 +158,43 @@ def get_watchlist(username):
     # Close connections 
     cnx.close()
     return ret
-        
+
+# Takes in string of trending stock information 
+# Returns: dictionary information of stocks
+def get_trending_dict(string, amount):
+    retDict = {}
+    index = string.find("symbol")
+    index += 9
+    ticker = ""
+    i = 0
+    while i < amount:
+        while string[index] != '"':
+            ticker += string[index]
+            index += 1
+        retDict[i] = {"ticker" : ticker, "price" : search_tiker(ticker).get("price")}
+        index = string.find("symbol", index)
+        index += 9
+        ticker = ""
+        i+=1
+    return retDict
+
+# returns a dictionary of the trending data
+@app.route("/g_trend/<amount>", methods=['GET'])
+def get_trending(amount):
+    # Request the new api 
+    # Returns string of trending stock info
+    url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-trending-tickers"
+    querystring = {"region":"US"}
+    headers = {
+        'x-rapidapi-key': "ab3fc55184msh1ee49f0b8a34d07p158a31jsn718ab0d2b234",
+        'x-rapidapi-host': "apidojo-yahoo-finance-v1.p.rapidapi.com"
+        }
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    
+    # Returns dictionary of trending stocks  
+    overall = get_trending_dict(response.text, amount)
+    return overall
+
 # Given customer information (first, last, username, password) 
 # Will create a user in the user database and store information
 @app.route("/c_acc/<first>/<last>/<username>/<password>", methods=['GET'])

@@ -46,6 +46,8 @@ def test_sell():
     print(linkingFuncs.sell('Wazza', 'GME', 18))
     print(linkingFuncs.sell('Wazza', 'MSFT', 5))
 
+def test_get_trending():
+    print(linkingFuncs.get_trending(5))
 
 def main():
     #test_search_ticker()
@@ -56,10 +58,11 @@ def main():
     #test_record_transaction()
     #test_buy()
     #test_sell()
-    test_get_profile()
+    #test_get_profile()
     #test_add_watchlist()
     #test_remove_watchlist()
     #test_get_watchlist()
+    test_get_trending()
     return 0
 
 main()
