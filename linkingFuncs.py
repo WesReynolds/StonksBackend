@@ -161,13 +161,13 @@ def get_watchlist(username):
 
 # Takes in string of trending stock information 
 # Returns: dictionary information of stocks
-def get_trending_dict(string, amount):
+def get_trending_dict(string):
     retDict = {}
     index = string.find("symbol")
     index += 9
     ticker = ""
     i = 0
-    while i < amount:
+    while i < 5:
         while string[index] != '"':
             ticker += string[index]
             index += 1
@@ -179,8 +179,8 @@ def get_trending_dict(string, amount):
     return retDict
 
 # returns a dictionary of the trending data
-@app.route("/g_trend/<amount>", methods=['GET'])
-def get_trending(amount):
+@app.route("/g_trend", methods=['GET'])
+def get_trending():
     # Request the new api 
     # Returns string of trending stock info
     url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-trending-tickers"
@@ -192,7 +192,7 @@ def get_trending(amount):
     response = requests.request("GET", url, headers=headers, params=querystring)
     
     # Returns dictionary of trending stocks  
-    overall = get_trending_dict(response.text, amount)
+    overall = get_trending_dict(response.text)
     return overall
 
 # Given customer information (first, last, username, password) 
