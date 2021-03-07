@@ -227,8 +227,8 @@ def get_movers_dict(string, amount):
     return retDict
 
 # returns a dictionary of the biggest moving data
-@app.route("/g_move/<amount>", methods=['GET'])
-def get_movers(amount):
+@app.route("/g_move", methods=['GET'])
+def get_movers():
     # Request the new api 
     # Returns string of trending stock info
     url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/v2/get-movers"
@@ -241,7 +241,7 @@ def get_movers(amount):
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     # Returns dictionary of trending stocks  
-    overall = get_movers_dict(response.text, amount)
+    overall = get_movers_dict(response.text, 5)
     return overall
 
 
@@ -423,7 +423,7 @@ def search_tiker(tik):
         if price == None:
             price = stock.info.get("previousClose")
             
-        retDict = { "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"), 
+        retDict = { "Name": stock.info.get(shortName), "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"),
                 "DayLow": stock.info.get("dayLow"), "PercentChange": stock.info.get("52WeekChange"), "Volume": stock.info.get("volume") }
     else:
         retDict = { "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
