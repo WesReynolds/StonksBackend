@@ -122,6 +122,7 @@ def get_profile(username):
     volume = 0
     totalSpent = 0
     key = 0 
+    p_value = 0 
     for result in fetch:
         if result[1] != oldTik:
             if totalSpent != 0:
@@ -129,6 +130,7 @@ def get_profile(username):
                 posValue = round((volume * curPrice), 2)
                 percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
                 ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue}
+                p_value = p_value + posValue
                 key = key + 1
                 volume = totalSpent = 0 
         if result[3] == "SELL":
@@ -143,7 +145,8 @@ def get_profile(username):
     if totalSpent != 0:
         posValue = round((volume * curPrice), 2)
         percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
-        ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue}
+        p_value = p_value + posValue
+        ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue, "total" : p_value}
     # Commit change 
     cnx.commit()
     # Close connections 

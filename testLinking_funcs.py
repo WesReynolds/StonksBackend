@@ -72,12 +72,12 @@ def main():
     #test_record_transaction()
     #test_buy()
     #test_sell()
-    #test_get_profile()
+    test_get_profile()
     #test_add_watchlist()
     #test_remove_watchlist()
     #test_get_watchlist()
     #test_get_trending()
-    test_get_movers()
+    #test_get_movers()
     return 0
 
 main()
