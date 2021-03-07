@@ -183,7 +183,7 @@ def get_trending_dict(string):
         while string[index] != '"':
             ticker += string[index]
             index += 1
-        retDict[i] = {"ticker" : ticker, "price" : search_tiker(ticker).get("price")}
+        retDict[i] = {"ticker" : ticker, "price" : search_tiker(ticker).get("Price")}
         index = string.find("symbol", index)
         index += 9
         ticker = ""
@@ -219,7 +219,7 @@ def get_movers_dict(string, amount):
         while string[index] != '"':
             ticker += string[index]
             index += 1
-        retDict[i] = {"ticker" : ticker, "price" : search_tiker(ticker).get("price")}
+        retDict[i] = {"ticker" : ticker, "price" : search_tiker(ticker).get("Price")}
         index = string.find("symbol", index)
         index += 9
         ticker = ""
@@ -329,7 +329,7 @@ def remove_watchlist(username, tik):
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
-    price =  search_tiker(tik).get('price')
+    price =  search_tiker(tik).get('Price')
     if(price == {}):
         return { 'Action': False }
     id = get_id(username, cur)
@@ -416,10 +416,11 @@ def search_tiker(tik):
     if fetch == None:
         try:
             stock = yf.Ticker(tik)
+            v = stock.info
         except:
             return { "Action": False }
-        
-        price = stock.info.get("ask")
+
+        price = v.get("ask")
         if price == None:
             price = stock.info.get("previousClose")
             

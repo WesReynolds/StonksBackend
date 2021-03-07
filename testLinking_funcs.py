@@ -57,7 +57,7 @@ def test_sell():
     print(linkingFuncs.sell('Wazza', 'MSFT', 5))
 
 def test_get_trending():
-    print(linkingFuncs.get_trending(5))
+    print(linkingFuncs.get_trending())
 
 def test_get_movers():
     print(linkingFuncs.get_movers(5))
@@ -77,7 +77,7 @@ def main():
     #test_remove_watchlist()
     #test_get_watchlist()
     #test_get_trending()
-    #test_get_movers()
+    test_get_movers()
     return 0
 
 main()
