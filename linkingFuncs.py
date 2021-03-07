@@ -423,7 +423,7 @@ def search_tiker(tik):
         if price == None:
             price = stock.info.get("previousClose")
             
-        retDict = { "Name": stock.info.get(shortName), "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"),
+        retDict = { "Name": stock.info.get("shortName"), "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"),
                 "DayLow": stock.info.get("dayLow"), "PercentChange": stock.info.get("52WeekChange"), "Volume": stock.info.get("volume") }
     else:
         retDict = { "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
