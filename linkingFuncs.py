@@ -77,7 +77,7 @@ def sell(username, tik, volume):
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
-    price =  search_tiker(tik).get('price')
+    price =  search_tiker(tik).get('Price')
     if(price == {}):
         return { 'Action': False}
     id = get_id(username, cur)
