@@ -37,9 +37,16 @@ def add_to_cache(tik):
     cur.execute("SELECT * FROM Cache WHERE Ticker='%s'" % (tik))
     if cur.fetchall() == []:
         stock = search_tiker(tik)
-        cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" % 
-                    (stock.get("Ticker"), stock.get("Price"), stock.get("Sector"), stock.get("DayHigh"),
-                    stock.get("DayLow"), stock.get("PercentChange"), stock.get("Volume")))
+        price = stock.get("Price")
+        dayHigh = stock.get("DayHigh")
+        dayLow = stock.get("DayLow")
+        percChange = stock.get("PercentChange")
+        volume = stock.get("Volume")
+        if price is not None and dayHigh is not None and dayLow is not None and percChange is not None and \
+                volume is not None:
+            cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" %
+                    (stock.get("Ticker"), price, stock.get("Sector"), dayHigh,
+                    dayLow, percChange, volume))
     cnx.commit()
     # Close connections 
     cnx.close()
@@ -79,30 +86,30 @@ def sell(username, tik, volume):
     # get current price
     price =  search_tiker(tik).get('Price')
     if(price == {}):
-        return { 'Action': False}
+        return jsonify(success=False)
     id = get_id(username, cur)
     if (id ==  None):
-        return { 'Action': False}   
+        return jsonify(success=False)
     time = datetime.datetime.now()
     cur.execute("SELECT * FROM Transactions WHERE ticker='%s' AND UserId='%d'" % (tik, id))
     curVolume = 0
     fetch = cur.fetchall()
     if (fetch == []):
-        return { 'Action': False }
+        return jsonify(success=False)
     for item in fetch:
         if item[3] == "BUY":
             curVolume += item[2]
         else:
             curVolume -= item[2]
     if volume > curVolume:
-        return { 'Action': False }
+        return jsonify(success=False)
     
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'SELL', '%f', '%s', 0)" % (id, tik, volume, price, time))
     # Commit change 
     cnx.commit()
     # Close connections 
     cnx.close()
-    return { 'Action': True}
+    return jsonify(success=True)
 
 
 @app.route("/g_prof/<username>", methods=['GET'])
@@ -123,33 +130,38 @@ def get_profile(username):
     totalSpent = 0
     key = 0 
     p_value = 0 
+    p_change = 0
+    p_spent = 0
     for result in fetch:
         if result[1] != oldTik:
             if totalSpent != 0:
                 curPrice =  search_tiker(oldTik).get('Price')
                 posValue = round((volume * curPrice), 2)
                 percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
-                ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue}
+                ret[key] = {"ticker": oldTik, "price" : curPrice, "volume": volume, "percentage": percentChange, "posValue" : posValue}
                 p_value = p_value + posValue
+                p_spent = p_spent + totalSpent
                 key = key + 1
-                volume = totalSpent = 0 
+                volume = totalSpent = 0
         if result[3] == "SELL":
             volume -= result[2]
             totalSpent -= (result[4] * result[2])
         else:
             volume += result[2]
-            totalSpent += (result[4] * result[2])  
-        oldTik = result[1]   
+            totalSpent += (result[4] * result[2])
+        oldTik = result[1]
 
     curPrice =  search_tiker(oldTik).get('Price')
     if totalSpent != 0:
         posValue = round((volume * curPrice), 2)
         percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
-        p_value = p_value + posValue
-        ret[key] = {"ticker": oldTik, "volume": volume, "percentage": percentChange, "posValue" : posValue, "total" : p_value}
-    # Commit change 
+        p_value = round((p_value + posValue), 2)
+        p_spent = p_spent + totalSpent
+        p_change = round(((p_value - p_spent) / p_spent) * 100, 2)
+        ret[key] = {"ticker": oldTik, "price" : curPrice, "volume": volume, "percentage": percentChange, "posValue" : posValue, "total" : p_value, "totalChange" : p_change}
+    # Commit change
     cnx.commit()
-    # Close connections 
+    # Close connections
     cnx.close()
     return ret
 
@@ -201,7 +213,7 @@ def get_trending():
     url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-trending-tickers"
     querystring = {"region":"US"}
     headers = {
-        'x-rapidapi-key': "ab3fc55184msh1ee49f0b8a34d07p158a31jsn718ab0d2b234",
+        'x-rapidapi-key': "9a2781c23bmsh7f295aceb2c0a9ap18232ejsnbaec90b0a568",
         'x-rapidapi-host': "apidojo-yahoo-finance-v1.p.rapidapi.com"
         }
     response = requests.request("GET", url, headers=headers, params=querystring)
@@ -238,7 +250,7 @@ def get_movers():
     querystring = {"region":"US","lang":"en-US","start":"0","count":"6"}
 
     headers = {
-        'x-rapidapi-key': "ab3fc55184msh1ee49f0b8a34d07p158a31jsn718ab0d2b234",
+        'x-rapidapi-key': "9a2781c23bmsh7f295aceb2c0a9ap18232ejsnbaec90b0a568",
         'x-rapidapi-host': "apidojo-yahoo-finance-v1.p.rapidapi.com"
         }
 
@@ -386,6 +398,11 @@ def update_cache():
     cur.execute("SELECT DISTINCT * FROM Transactions ORDER BY ticker")  
     for ticker in cur.fetchall():
         stock = yf.Ticker(ticker[1])
+        sector = stock.info.get("sector")
+        dayHigh = stock.info.get("dayHigh")
+        dayLow = stock.info.get("dayLow")
+        wkChange = stock.info.get("52WeekChange")
+        volume = stock.info.get("volume")
         price = stock.info.get("ask")
         if price == 0:
             price = stock.info.get("dayClose")
@@ -393,14 +410,9 @@ def update_cache():
         cur2.execute("SELECT DISTINCT * FROM Cache WHERE ticker='%s'" % (ticker[1]))
         if cur2.fetchone() == None:
             cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" %
-                        (ticker[1], price, stock.info.get("sector"), stock.info.get("dayHigh"),
-                        stock.info.get("dayLow"), stock.info.get("52WeekChange"), stock.info.get("volume")))  
+                        (ticker[1], price, sector, dayHigh,
+                        dayLow, wkChange, volume))
         else:
-            sector = stock.info.get("sector")
-            dayHigh = stock.info.get("dayHigh")
-            dayLow = stock.info.get("dayLow")
-            wkChange = stock.info.get("52WeekChange")
-            volume = stock.info.get("volume")
             cur.execute("UPDATE Cache SET Ticker='%s', Price='%f', Sector='%s', DayHigh='%f', DayLow='%f', PercentChange='%f', Volume='%d' WHERE Ticker='%s'" %
                         (ticker[1], price, sector, dayHigh,
                         dayLow, wkChange, volume, ticker[1]))
