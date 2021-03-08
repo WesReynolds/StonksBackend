@@ -396,9 +396,14 @@ def update_cache():
                         (ticker[1], price, stock.info.get("sector"), stock.info.get("dayHigh"),
                         stock.info.get("dayLow"), stock.info.get("52WeekChange"), stock.info.get("volume")))  
         else:
+            sector = stock.info.get("sector")
+            dayHigh = stock.info.get("dayHigh")
+            dayLow = stock.info.get("dayLow")
+            wkChange = stock.info.get("52WeekChange")
+            volume = stock.info.get("volume")
             cur.execute("UPDATE Cache SET Ticker='%s', Price='%f', Sector='%s', DayHigh='%f', DayLow='%f', PercentChange='%f', Volume='%d' WHERE Ticker='%s'" %
-                        (ticker[1], price, stock.info.get("sector"), stock.info.get("dayHigh"),
-                        stock.info.get("dayLow"), stock.info.get("52WeekChange"), stock.info.get("volume"), ticker[1]))
+                        (ticker[1], price, sector, dayHigh,
+                        dayLow, wkChange, volume, ticker[1]))
     # Commit change 
     cnx.commit()
     # Close connections 
