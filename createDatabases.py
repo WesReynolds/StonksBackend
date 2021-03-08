@@ -1,12 +1,15 @@
+
+# Go to: 
+# https://dev.mysql.com/downloads/mysql/
+# follow download process for your machine
+# set password to Valentino46
+
 #How to run 
-# 1). pip install mysql 
-# 2). pip install mysql-connector
-# 2). mysql -u root -p 
-# 3). Valentino46
-# 4). CREATE DATABASE StonkLabs
-# 5). 
-# 6). run script 
-# 7). Enjoy! :)
+# 1). mysql -u root -p 
+# 2). Valentino46
+# 3). CREATE DATABASE StonkLabs
+# 4). run script 
+# 5). Enjoy! :)
 
 import datetime 
 import mysql.connector
@@ -61,10 +64,24 @@ def create_transactions():
     # Close connections 
     cnx.close()
     return
+
+def create_cache():
+    # establish connection
+    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    # create a cursor 
+    cur = cnx.cursor(buffered=True)
+    # Create the Cache 
+    cur.execute("CREATE TABLE Cache (Ticker varchar(10), Price float(0), Sector varchar(100), DayHigh float(0), DayLow float(0), PercentChange float(0), Volume int)")
+    # Commit change 
+    cnx.commit()
+    # Close connections 
+    cnx.close()
+    return
     
 def main():
-    #create_users()
+    create_users()
     create_transactions()
+    create_cache()
     return 0
 
 main()
