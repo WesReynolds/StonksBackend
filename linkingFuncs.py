@@ -56,7 +56,7 @@ def add_to_cache(tik):
 def buy(username, tik, volume):
     volume = int(volume)
     if (volume <= 0):
-        return jsonify(success=False, error=99)
+        return {'success' : False, 'error' : 99}
     # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
@@ -64,10 +64,10 @@ def buy(username, tik, volume):
     # get current price
     price =  search_tiker(tik).get('Price')
     if(price == None or price == 0):
-        return jsonify(success=False, error=98)
+        return {'success' : False, 'error' : 98}
     id = get_id(username, cur)
     if (id ==  None):
-        return jsonify(success=False, error=97)
+        return {'success' : False, 'error' : 97}
     time = datetime.datetime.now()
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'BUY', '%f', '%s', 0)" % (
         id, tik, volume, price, time))
@@ -76,13 +76,13 @@ def buy(username, tik, volume):
     # Close connections 
     cnx.close()
     add_to_cache(tik)
-    return jsonify(success=True)
+    return {'success' : True}
 
 @app.route("/sell/<username>/<tik>/<volume>")
 def sell(username, tik, volume):
     volume = int(volume)
     if (volume <= 0):
-        return jsonify(success=False, error=99)
+        return {'success' : False, 'error' : 99}
     # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
@@ -90,30 +90,30 @@ def sell(username, tik, volume):
     # get current price
     price =  search_tiker(tik).get('Price')
     if(price == {}):
-        return jsonify(success=False, error=98)
+        return {'success' : False, 'error' : 98}
     id = get_id(username, cur)
     if (id ==  None):
-        return jsonify(success=False, error=97)
+        return {'success' : False, 'error' : 97}
     time = datetime.datetime.now()
     cur.execute("SELECT * FROM Transactions WHERE ticker='%s' AND UserId='%d'" % (tik, id))
     curVolume = 0
     fetch = cur.fetchall()
     if (fetch == []):
-        return jsonify(success=False, error=96)
+        return {'success' : False, 'error' : 96}
     for item in fetch:
         if item[3] == "BUY":
             curVolume += item[2]
         else:
             curVolume -= item[2]
     if volume > curVolume:
-        return jsonify(success=False, error=95)
+        return {'success' : False, 'error' : 95}
     
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'SELL', '%f', '%s', 0)" % (id, tik, volume, price, time))
     # Commit change 
     cnx.commit()
     # Close connections 
     cnx.close()
-    return jsonify(success=True)
+    return {'success' : True}
 
 
 @app.route("/g_prof/<username>", methods=['GET'])
@@ -413,19 +413,19 @@ def update_cache():
             wkChange = stock.info.get("52WeekChange")
             volume = stock.info.get("volume")
             price = stock.info.get("ask")
+            shortName = stock.info.get("shortName")
             if (price == 0 or price == None):
                 price = stock.info.get("dayClose")
-            print(price)
-            print(tickerList)
             cur2.execute("SELECT DISTINCT * FROM Cache WHERE ticker='%s'" % (ticker[1]))
             if cur2.fetchone() == None:
-                cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" %
+                cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d', '%s')" %
                             (ticker[1], price, sector, dayHigh,
-                            dayLow, wkChange, volume))
+                            dayLow, wkChange, volume, shortName))
             else:
-                cur.execute("UPDATE Cache SET Ticker='%s', Price='%f', Sector='%s', DayHigh='%f', DayLow='%f', PercentChange='%f', Volume='%d' WHERE Ticker='%s'" %
+                cur.execute("UPDATE Cache SET Ticker='%s', Price='%f', Sector='%s', DayHigh='%f', DayLow='%f', "
+                            "PercentChange='%f', Volume='%d', shortName='%s' WHERE Ticker='%s'" %
                             (ticker[1], price, sector, dayHigh,
-                            dayLow, wkChange, volume, ticker[1]))
+                            dayLow, wkChange, volume, shortName, ticker[1]))
     # Commit change 
     cnx.commit()
     # Close connections 
@@ -457,7 +457,7 @@ def search_tiker(tik):
         retDict = { "Name": stock.info.get("shortName"), "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"),
                 "DayLow": stock.info.get("dayLow"), "PercentChange": stock.info.get("52WeekChange"), "Volume": stock.info.get("volume") }
     else:
-        retDict = { "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
+        retDict = { "Name" : fetch[7], "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
                 "PercentChange": fetch[5], "Volume": fetch[6]}
     # Commit change 
     cnx.commit()
