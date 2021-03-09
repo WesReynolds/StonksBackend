@@ -42,11 +42,12 @@ def add_to_cache(tik):
         dayLow = stock.get("DayLow")
         percChange = stock.get("PercentChange")
         volume = stock.get("Volume")
+        shortName = stock.get("shortName")
         if price is not None and dayHigh is not None and dayLow is not None and percChange is not None and \
                 volume is not None:
-            cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" %
+            cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d', '%s')" %
                     (stock.get("Ticker"), price, stock.get("Sector"), dayHigh,
-                    dayLow, percChange, volume))
+                    dayLow, percChange, volume, shortName))
     cnx.commit()
     # Close connections 
     cnx.close()
