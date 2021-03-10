@@ -1,26 +1,26 @@
 import unittest
 import linkingFuncs
+import mysql.connector
 
 
 class TestLinkingFuncs(unittest.TestCase):
 
     def test_buy(self):
-        trueValue = {'Action': True}
-        falseValue = {'Action': False}
+        trueValue = {'success': True}
 
         self.assertEqual(linkingFuncs.buy("Wazza", "AAPL", 5), trueValue)   # Good entry
-        self.assertEqual(linkingFuncs.buy("Wazza", "", 10), falseValue)     # Bad ticker symbol
-        self.assertEqual(linkingFuncs.buy("", "AAPL", 15), falseValue)      # Bad username
+        self.assertEqual(linkingFuncs.buy("Wazza", "", 10), {'success': False, 'error': 98})     # Bad ticker symbol
+        self.assertEqual(linkingFuncs.buy("", "AAPL", 15), {'success': False, 'error': 97})      # Bad username
 
     def test_sell(self):
-        trueValue = {'Action': True}
-        falseValue = {'Action': False}
+        trueValue = {'success': True}
 
-        self.assertEqual(linkingFuncs.sell("Wazza", "AAPL", 5), trueValue)   # Good entry
-        self.assertEqual(linkingFuncs.sell("Wazza", "", 10), falseValue)     # Bad ticker symbol
-        self.assertEqual(linkingFuncs.sell("", "AAPL", 15), falseValue)      # Bad username
-        self.assertEqual(linkingFuncs.sell("Wazza", "AAPL", 99), falseValue)    # Selling more than user owns
-        self.assertEqual(linkingFuncs.sell("Wazza", "HD", 15), falseValue)      # Selling unowned stock
+        self.assertEqual(linkingFuncs.sell("Wazza", "AAPL", 1), trueValue)   # Good entry
+        self.assertEqual(linkingFuncs.sell("Wazza", "", 10), {'success': False, 'error': 96})     # Bad ticker symbol
+        self.assertEqual(linkingFuncs.sell("A", "AAPL", 15), {'success': False, 'error': 97})      # Bad username
+        self.assertEqual(linkingFuncs.sell("Wazza", "AAPL", 99), {'success': False, 'error': 95})    # Selling more than user owns
+        self.assertEqual(linkingFuncs.sell("Wazza", "HD", 15), {'success': False, 'error': 96})      # Selling unowned stock
+        self.assertEqual(linkingFuncs.sell("Wazza", "AAPL", 0), {'success': False, 'error': 99})  # Selling 0 stock
 
     def test_get_profile(self):
         profile = linkingFuncs.get_profile("Wazza")
@@ -28,26 +28,29 @@ class TestLinkingFuncs(unittest.TestCase):
         self.assertNotEqual(profile, {})        # Check that it is not empty
 
     def test_get_watchlist(self):
+        linkingFuncs.add_watchlist("Wazza", "AAPL")
         profile = linkingFuncs.get_watchlist("Wazza")
         self.assertEqual(type(profile), dict)   # Check that it is a dictionary
         self.assertNotEqual(profile, {})        # Check that it is not empty
 
     def test_get_trending(self):
-        profile = linkingFuncs.get_trending("Wazza")
+        profile = linkingFuncs.get_trending()
         self.assertEqual(type(profile), dict)  # Check that it is a dictionary
         self.assertNotEqual(profile, {})  # Check that it is not empty
 
     def test_get_movers(self):
-        profile = linkingFuncs.get_movers("Wazza")
+        profile = linkingFuncs.get_movers()
         self.assertEqual(type(profile), dict)  # Check that it is a dictionary
         self.assertNotEqual(profile, {})  # Check that it is not empty
 
     def test_create_account(self):
+        goodAccount = {'Action': True}
         badAccount = {'Action': False}
-        self.assertEqual(linkingFuncs.create_account("Wes", "Reynolds", "Wesley", "password"),
-                         {'Action': True, 'username': "Wesley", 'firstname': "Wes", 'lastname': "Reynolds",
-                          'password': "password"})
         self.assertEqual(linkingFuncs.create_account("Wes", "Reynolds", "Wazza", "hi"), badAccount)
+        self.assertEqual(linkingFuncs.create_account("New", "Name", "New", "Password"), goodAccount)
+        cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+        cur = cnx.cursor(buffered=True)
+        cur.execute("DELETE FROM Users WHERE username='NEW'")
 
     def test_login(self):
         self.assertEqual(linkingFuncs.login("Wazza", "myPassword"),
@@ -60,7 +63,6 @@ class TestLinkingFuncs(unittest.TestCase):
         goodEntry = {'Action': True}
         badEntry = {'Action': False}
         self.assertEqual(linkingFuncs.remove_watchlist("Wes", "AAPL"), badEntry)    # Account does not exist
-        self.assertEqual(linkingFuncs.remove_watchlist("Wazza", "DIS"), badEntry)   # Stock not on watchlist
         linkingFuncs.add_watchlist("Wazza", "AAPL")
         self.assertEqual(linkingFuncs.remove_watchlist("Wazza", "AAPL"), goodEntry)
 

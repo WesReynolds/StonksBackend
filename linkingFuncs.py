@@ -24,7 +24,7 @@ def get_nxtId(cur):
 def get_id(username, cur):
     cur.execute("SELECT * FROM Users WHERE username='%s'" % (username))
     fetch = cur.fetchone()
-    if fetch == []:
+    if fetch == None:
         return None
     return fetch[0]
 
@@ -99,8 +99,8 @@ def sell(username, tik, volume):
     cur.execute("SELECT * FROM Transactions WHERE ticker='%s' AND UserId='%d'" % (tik, id))
     curVolume = 0
     fetch = cur.fetchall()
-    if (fetch == []):
-        return {'success' : False, 'error' : 96}
+    if fetch == []:
+        return {'success': False, 'error': 96}
     for item in fetch:
         if item[3] == "BUY":
             curVolume += item[2]
@@ -245,7 +245,7 @@ def get_movers_dict(string, amount):
         index = string.find("symbol", index)
         index += 9
         ticker = ""
-        i+=1
+        i += 1
     return retDict
 
 # returns a dictionary of the biggest moving data
@@ -377,7 +377,7 @@ def add_watchlist(username, tik):
     cur = cnx.cursor(buffered=True)
     # get current price
     price =  search_tiker(tik).get('Price')
-    if(price == {}):
+    if(price == 0):
         return { 'Action': False}
     id = get_id(username, cur)
     if (id ==  None):
@@ -386,6 +386,8 @@ def add_watchlist(username, tik):
     if cur.fetchone() != None:
         return { 'Action': False}
     time = datetime.datetime.now()
+    if price == None:
+        price = 0
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', 0, 'BUY', '%f', '%s', 1)" % (
         id, tik, price, time))
     # Commit change 
@@ -417,6 +419,16 @@ def update_cache():
             shortName = stock.info.get("shortName")
             if (price == 0 or price == None):
                 price = stock.info.get("dayClose")
+            if price == None:
+                price = 0
+            if dayHigh == None:
+                dayHigh = 0
+            if dayLow == None:
+                dayLow = 0
+            if volume == None:
+                volume = 0
+            if wkChange == None:
+                wkChange = 0
             cur2.execute("SELECT DISTINCT * FROM Cache WHERE ticker='%s'" % (ticker[1]))
             if cur2.fetchone() == None:
                 cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d', '%s')" %
@@ -452,11 +464,24 @@ def search_tiker(tik):
             return { "Action": False }
 
         price = v.get("ask")
-        if (price == None or price == 0):
+        if price == None or price == 0:
             price = stock.info.get("previousClose")
-            
-        retDict = { "Name": stock.info.get("shortName"), "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"),
-                "DayLow": stock.info.get("dayLow"), "PercentChange": stock.info.get("52WeekChange"), "Volume": stock.info.get("volume") }
+        sector = v.get("sector")
+        dayHigh = v.get("dayHigh")
+        if dayHigh == None:
+            dayHigh = 0
+        dayLow = v.get("dayLow")
+        if dayLow == None:
+            dayLow = 0
+        change = v.get("52WeekChange")
+        if change == None:
+            change = 0
+        volume = v.get("volume")
+        if volume == None:
+            volume = 0
+
+        retDict = {"Name": stock.info.get("shortName"), "Ticker": tik , "Price": price, "Sector": sector,
+                    "DayHigh": dayHigh, "DayLow": dayLow, "PercentChange": change, "Volume": volume}
     else:
         retDict = { "Name" : fetch[7], "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
                 "PercentChange": fetch[5], "Volume": fetch[6]}
