@@ -38,7 +38,7 @@ def test_record_transaction():
     print(linkingFuncs.record_transaction('Wazza', 10, 'AAPL', 'SELL'))
 
 def test_get_profile():
-    print(linkingFuncs.get_profile('Wazza'))  
+    print(linkingFuncs.get_profile('bugf'))
 
 def test_get_watchlist():
     print(linkingFuncs.get_watchlist('Joshi'))
@@ -50,11 +50,10 @@ def test_remove_watchlist():
     print(linkingFuncs.remove_watchlist('Wazza', 'TSLA'))
 
 def test_buy():
-    print(linkingFuncs.buy('Wazza', 'BAC', 15))
+    print(linkingFuncs.buy('bugf', 'BAC', 15))
     
 def test_sell():
-    print(linkingFuncs.sell('Wazza', 'GME', 18))
-    print(linkingFuncs.sell('Wazza', 'MSFT', 5))
+    print(linkingFuncs.sell('bugf', 'BAC', 4))
 
 def test_get_trending():
     print(linkingFuncs.get_trending())
@@ -70,8 +69,8 @@ def main():
     #test_create_account()
     #test_login()
     #test_record_transaction()
-    #test_buy()
-    #test_sell()
+    test_buy()
+    test_sell()
     test_get_profile()
     #test_add_watchlist()
     #test_remove_watchlist()

@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)
 ssl._create_default_https_context = ssl._create_unverified_context
 
-#gets next valid id  
+#gets next valid id
 def get_nxtId(cur):
     cur.execute("SELECT * FROM Users ORDER BY id DESC")
     nxtID = cur.fetchone()
@@ -42,11 +42,12 @@ def add_to_cache(tik):
         dayLow = stock.get("DayLow")
         percChange = stock.get("PercentChange")
         volume = stock.get("Volume")
+        shortName = stock.get("shortName")
         if price is not None and dayHigh is not None and dayLow is not None and percChange is not None and \
                 volume is not None:
-            cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" %
+            cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d', '%s')" %
                     (stock.get("Ticker"), price, stock.get("Sector"), dayHigh,
-                    dayLow, percChange, volume))
+                    dayLow, percChange, volume, shortName))
     cnx.commit()
     # Close connections 
     cnx.close()
@@ -55,17 +56,19 @@ def add_to_cache(tik):
 @app.route("/buy/<username>/<tik>/<volume>")
 def buy(username, tik, volume):
     volume = int(volume)
+    if (volume <= 0):
+        return {'success' : False, 'error' : 99}
     # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
     price =  search_tiker(tik).get('Price')
-    if(price == None):
-        return { 'Action': False}
+    if(price == None or price == 0):
+        return {'success' : False, 'error' : 98}
     id = get_id(username, cur)
     if (id ==  None):
-        return { 'Action': False}
+        return {'success' : False, 'error' : 97}
     time = datetime.datetime.now()
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'BUY', '%f', '%s', 0)" % (
         id, tik, volume, price, time))
@@ -74,11 +77,13 @@ def buy(username, tik, volume):
     # Close connections 
     cnx.close()
     add_to_cache(tik)
-    return { 'Action': True}
+    return {'success' : True}
 
 @app.route("/sell/<username>/<tik>/<volume>")
 def sell(username, tik, volume):
     volume = int(volume)
+    if (volume <= 0):
+        return {'success' : False, 'error' : 99}
     # establish connection
     cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
     # create a cursor 
@@ -86,30 +91,30 @@ def sell(username, tik, volume):
     # get current price
     price =  search_tiker(tik).get('Price')
     if(price == {}):
-        return jsonify(success=False)
+        return {'success' : False, 'error' : 98}
     id = get_id(username, cur)
     if (id ==  None):
-        return jsonify(success=False)
+        return {'success' : False, 'error' : 97}
     time = datetime.datetime.now()
     cur.execute("SELECT * FROM Transactions WHERE ticker='%s' AND UserId='%d'" % (tik, id))
     curVolume = 0
     fetch = cur.fetchall()
     if (fetch == []):
-        return jsonify(success=False)
+        return {'success' : False, 'error' : 96}
     for item in fetch:
         if item[3] == "BUY":
             curVolume += item[2]
         else:
             curVolume -= item[2]
     if volume > curVolume:
-        return jsonify(success=False)
+        return {'success' : False, 'error' : 95}
     
     cur.execute("INSERT INTO Transactions Values ('%d', '%s', '%d', 'SELL', '%f', '%s', 0)" % (id, tik, volume, price, time))
     # Commit change 
     cnx.commit()
     # Close connections 
     cnx.close()
-    return jsonify(success=True)
+    return {'success' : True}
 
 
 @app.route("/g_prof/<username>", methods=['GET'])
@@ -128,8 +133,8 @@ def get_profile(username):
     oldTik = ""
     volume = 0
     totalSpent = 0
-    key = 0 
-    p_value = 0 
+    key = 0
+    p_value = 0
     p_change = 0
     p_spent = 0
     for result in fetch:
@@ -138,7 +143,8 @@ def get_profile(username):
                 curPrice =  search_tiker(oldTik).get('Price')
                 posValue = round((volume * curPrice), 2)
                 percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
-                ret[key] = {"ticker": oldTik, "price" : curPrice, "volume": volume, "percentage": percentChange, "posValue" : posValue}
+                ret[key] = {"ticker": oldTik, "price" : curPrice, "volume": volume, "percentage": percentChange,
+                            "posValue" : posValue}
                 p_value = p_value + posValue
                 p_spent = p_spent + totalSpent
                 key = key + 1
@@ -151,14 +157,15 @@ def get_profile(username):
             totalSpent += (result[4] * result[2])
         oldTik = result[1]
 
-    curPrice =  search_tiker(oldTik).get('Price')
+    curPrice = search_tiker(oldTik).get('Price')
     if totalSpent != 0:
         posValue = round((volume * curPrice), 2)
         percentChange = round(((posValue - totalSpent) / totalSpent) * 100, 2)
         p_value = round((p_value + posValue), 2)
         p_spent = p_spent + totalSpent
         p_change = round(((p_value - p_spent) / p_spent) * 100, 2)
-        ret[key] = {"ticker": oldTik, "price" : curPrice, "volume": volume, "percentage": percentChange, "posValue" : posValue, "total" : p_value, "totalChange" : p_change}
+        ret[key] = {"ticker": oldTik, "price" : curPrice, "volume": volume, "percentage": percentChange,
+                    "posValue" : posValue, "total" : p_value, "totalChange" : p_change}
     # Commit change
     cnx.commit()
     # Close connections
@@ -395,27 +402,31 @@ def update_cache():
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     cur2 = cnx.cursor(buffered=True)
-    cur.execute("SELECT DISTINCT * FROM Transactions ORDER BY ticker")  
+    cur.execute("SELECT DISTINCT * FROM Transactions ORDER BY ticker")
+    tickerList = []
     for ticker in cur.fetchall():
-        stock = yf.Ticker(ticker[1])
-        sector = stock.info.get("sector")
-        dayHigh = stock.info.get("dayHigh")
-        dayLow = stock.info.get("dayLow")
-        wkChange = stock.info.get("52WeekChange")
-        volume = stock.info.get("volume")
-        price = stock.info.get("ask")
-        if price == 0:
-            price = stock.info.get("dayClose")
-        print(price)
-        cur2.execute("SELECT DISTINCT * FROM Cache WHERE ticker='%s'" % (ticker[1]))
-        if cur2.fetchone() == None:
-            cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d')" %
-                        (ticker[1], price, sector, dayHigh,
-                        dayLow, wkChange, volume))
-        else:
-            cur.execute("UPDATE Cache SET Ticker='%s', Price='%f', Sector='%s', DayHigh='%f', DayLow='%f', PercentChange='%f', Volume='%d' WHERE Ticker='%s'" %
-                        (ticker[1], price, sector, dayHigh,
-                        dayLow, wkChange, volume, ticker[1]))
+        if not ticker[1] in tickerList:
+            tickerList.append(ticker[1])
+            stock = yf.Ticker(ticker[1])
+            sector = stock.info.get("sector")
+            dayHigh = stock.info.get("dayHigh")
+            dayLow = stock.info.get("dayLow")
+            wkChange = stock.info.get("52WeekChange")
+            volume = stock.info.get("volume")
+            price = stock.info.get("ask")
+            shortName = stock.info.get("shortName")
+            if (price == 0 or price == None):
+                price = stock.info.get("dayClose")
+            cur2.execute("SELECT DISTINCT * FROM Cache WHERE ticker='%s'" % (ticker[1]))
+            if cur2.fetchone() == None:
+                cur.execute("INSERT INTO Cache Values ('%s', '%f', '%s', '%f', '%f', '%f', '%d', '%s')" %
+                            (ticker[1], price, sector, dayHigh,
+                            dayLow, wkChange, volume, shortName))
+            else:
+                cur.execute("UPDATE Cache SET Ticker='%s', Price='%f', Sector='%s', DayHigh='%f', DayLow='%f', "
+                            "PercentChange='%f', Volume='%d', shortName='%s' WHERE Ticker='%s'" %
+                            (ticker[1], price, sector, dayHigh,
+                            dayLow, wkChange, volume, shortName, ticker[1]))
     # Commit change 
     cnx.commit()
     # Close connections 
@@ -441,13 +452,13 @@ def search_tiker(tik):
             return { "Action": False }
 
         price = v.get("ask")
-        if price == None:
+        if (price == None or price == 0):
             price = stock.info.get("previousClose")
             
         retDict = { "Name": stock.info.get("shortName"), "Ticker": tik , "Price": price, "Sector": stock.info.get("sector"), "DayHigh": stock.info.get("dayHigh"),
                 "DayLow": stock.info.get("dayLow"), "PercentChange": stock.info.get("52WeekChange"), "Volume": stock.info.get("volume") }
     else:
-        retDict = { "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
+        retDict = { "Name" : fetch[7], "Ticker": fetch[0], "Price": fetch[1], "Sector": fetch[2], "DayHigh": fetch[3], "DayLow": fetch[4],
                 "PercentChange": fetch[5], "Volume": fetch[6]}
     # Commit change 
     cnx.commit()
