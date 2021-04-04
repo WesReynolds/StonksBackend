@@ -20,7 +20,7 @@ import mysql.connector
 # current database, assuming the user is "root"
 def create_users():
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Create the Users Table
@@ -43,7 +43,7 @@ def create_users():
     
 def create_transactions():
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Create the Transactions Table 
@@ -67,7 +67,7 @@ def create_transactions():
 
 def create_cache():
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Create the Cache 
