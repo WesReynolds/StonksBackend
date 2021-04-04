@@ -30,7 +30,7 @@ def get_id(username, cur):
 
 def add_to_cache(tik):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
 
@@ -59,7 +59,7 @@ def buy(username, tik, volume):
     if (volume <= 0):
         return {'success' : False, 'error' : 99}
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
@@ -85,7 +85,7 @@ def sell(username, tik, volume):
     if (volume <= 0):
         return {'success' : False, 'error' : 99}
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
@@ -120,7 +120,7 @@ def sell(username, tik, volume):
 @app.route("/g_prof/<username>", methods=['GET'])
 def get_profile(username):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     id = get_id(username, cur)
@@ -175,7 +175,7 @@ def get_profile(username):
 @app.route("/g_watch/<username>", methods=['GET'])
 def get_watchlist(username):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     id = get_id(username, cur)
@@ -272,7 +272,7 @@ def get_movers():
 @app.route("/c_acc/<first>/<last>/<username>/<password>", methods=['GET'])
 def create_account(first, last, username, password):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Look to see if username is already there 
@@ -297,7 +297,7 @@ def create_account(first, last, username, password):
 @app.route("/login/<username>/<password>", methods=['GET'])
 def login(username, password):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # Look to see if username is already there 
@@ -326,7 +326,7 @@ def get_users():
             ]
     }
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor
     cur = cnx.cursor(buffered=True)
     # fetch all users in DB
@@ -347,7 +347,7 @@ def get_users():
 @app.route("/rem_w/<username>/<tik>", methods=['GET'])
 def remove_watchlist(username, tik):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
@@ -372,7 +372,7 @@ def remove_watchlist(username, tik):
 @app.route("/add_w/<username>/<tik>", methods=['GET'])
 def add_watchlist(username, tik):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     # get current price
@@ -400,7 +400,7 @@ def add_watchlist(username, tik):
 @app.route("/update_cache/", methods=['GET'])
 def update_cache():
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
     cur2 = cnx.cursor(buffered=True)
@@ -449,7 +449,7 @@ def update_cache():
 # search_tiker - send back dictionary 
 def search_tiker(tik):
     # establish connection
-    cnx = mysql.connector.connect(user='root', password='Valentino46', database='StonkLabs')
+    cnx = mysql.connector.connect(user='root', password='*password*', database='StonkLabs')
     # create a cursor 
     cur = cnx.cursor(buffered=True)
 
