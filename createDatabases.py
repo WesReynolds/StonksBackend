@@ -2,11 +2,11 @@
 # Go to: 
 # https://dev.mysql.com/downloads/mysql/
 # follow download process for your machine
-# set password to Valentino46
+# set password to *password*
 
 #How to run 
 # 1). mysql -u root -p 
-# 2). Valentino46
+# 2). *password*
 # 3). CREATE DATABASE StonkLabs
 # 4). run script 
 # 5). Enjoy! :)
